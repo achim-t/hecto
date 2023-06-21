@@ -9,30 +9,32 @@ impl Editor {
         terminal::enable_raw_mode().unwrap();
 
         loop {
-            let event = read();
-            match event {
-                Ok(event) => {
-                    if let Event::Key(pressed_key) = event {
-                        match (pressed_key.modifiers, pressed_key.code) {
-                            (KeyModifiers::CONTROL, KeyCode::Char('q')) => break,
-                            (_, KeyCode::Char(c)) => {
-                                if c.is_control() {
-                                    println!("{:?}\r", c as u8);
-                                } else {
-                                    println!("{:?} ({})\r", c as u8, c)
-                                }
-                            }
-                            _ => println!("{:?}\r", pressed_key),
-                        }
-                    }
-                }
-                Err(err) => die(err),
+            if let Err(error) = self.process_keypress() {
+                die(error);
             }
         }
     }
 
+    fn process_keypress(&self) -> Result<(), std::io::Error> {
+        let event = read_key()?;
+        if let Event::Key(pressed_key) = event {
+            match (pressed_key.modifiers, pressed_key.code) {
+                (KeyModifiers::CONTROL, KeyCode::Char('q')) => panic!("program end"),
+                _ => (),
+            }
+        }; 
+        Ok(())
+    }
+
     pub fn default() -> Self {
-        Editor{}
+        Self {}
+    }
+}
+
+fn read_key() -> Result<Event, std::io::Error> {
+    loop {
+        let event = read();
+        return event
     }
 }
 
