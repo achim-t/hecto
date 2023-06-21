@@ -2,24 +2,29 @@ use crossterm::{
     event::{read, Event, KeyCode, KeyModifiers},
     terminal,
 };
-pub struct Editor {}
+pub struct Editor {
+    should_quit: bool,
+}
 
 impl Editor {
-    pub fn run(&self) {
+    pub fn run(&mut self) {
         terminal::enable_raw_mode().unwrap();
 
         loop {
+            if self.should_quit {
+                break;
+            }
             if let Err(error) = self.process_keypress() {
                 die(error);
             }
         }
     }
 
-    fn process_keypress(&self) -> Result<(), std::io::Error> {
+    fn process_keypress(&mut self) -> Result<(), std::io::Error> {
         let event = read_key()?;
         if let Event::Key(pressed_key) = event {
             match (pressed_key.modifiers, pressed_key.code) {
-                (KeyModifiers::CONTROL, KeyCode::Char('q')) => panic!("program end"),
+                (KeyModifiers::CONTROL, KeyCode::Char('q')) => self.should_quit = true,
                 _ => (),
             }
         }; 
@@ -27,7 +32,9 @@ impl Editor {
     }
 
     pub fn default() -> Self {
-        Self {}
+        Self {
+            should_quit: false
+        }
     }
 }
 
