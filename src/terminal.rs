@@ -1,6 +1,8 @@
 use crossterm::{ cursor, event::{ read, Event }, terminal, ExecutableCommand, QueueableCommand };
 use std::io::{ stdout, Write };
 
+use crate::Position;
+
 pub struct Size {
     pub width: u16,
     pub height: u16,
@@ -30,9 +32,10 @@ impl Terminal {
         stdout().execute(terminal::Clear(terminal::ClearType::All)).ok();
     }
 
-    pub fn cursor_position(x: u16, y: u16) {
-        let x = x.saturating_add(1);
-        let y = y.saturating_add(1);
+    pub fn cursor_position(position: &Position) {
+        let Position { mut x, mut y } = position;
+        let x = x.saturating_add(1) as u16;
+        let y = y.saturating_add(1) as u16;
         stdout()
             .queue(cursor::MoveTo(x - 1, y - 1))
             .ok();
