@@ -48,4 +48,16 @@ impl Terminal {
             return event;
         }
     }
+
+    pub fn cursor_hide() {
+        stdout().execute(cursor::DisableBlinking).ok();
+    }
+
+    pub fn cursor_show() {
+        stdout().execute(cursor::EnableBlinking).ok();
+    }
+
+    pub fn clear_current_line() {
+        stdout().execute(terminal::Clear(terminal::ClearType::CurrentLine)).ok();
+    }
 }
