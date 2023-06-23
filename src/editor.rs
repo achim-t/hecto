@@ -1,7 +1,5 @@
 use crate::Terminal;
-use crossterm::{
-    event::{ Event, KeyCode, KeyModifiers}
-};
+use crossterm::{ event::{ Event, KeyCode, KeyModifiers } };
 pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
@@ -26,10 +24,12 @@ impl Editor {
         let event = Terminal::read_key()?;
         if let Event::Key(pressed_key) = event {
             match (pressed_key.modifiers, pressed_key.code) {
-                (KeyModifiers::CONTROL, KeyCode::Char('q')) => self.should_quit = true,
+                (KeyModifiers::CONTROL, KeyCode::Char('q')) => {
+                    self.should_quit = true;
+                }
                 _ => (),
             }
-        }; 
+        }
         Ok(())
     }
 
@@ -39,7 +39,7 @@ impl Editor {
             println!("Goodbye\r");
         } else {
             self.draw_rows();
-            Terminal::cursor_position(0,0);
+            Terminal::cursor_position(0, 0);
         }
         Terminal::flush()
     }
@@ -58,10 +58,6 @@ impl Editor {
     }
 }
 
-
-
 fn die(e: std::io::Error) {
     panic!("{}", e);
 }
-
-
