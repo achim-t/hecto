@@ -1,4 +1,11 @@
-use crossterm::{ cursor, event::{ read, Event }, terminal, ExecutableCommand, QueueableCommand };
+use crossterm::{
+    cursor,
+    event::{ read, Event },
+    terminal,
+    ExecutableCommand,
+    QueueableCommand,
+    style::{ ResetColor, SetColors },
+};
 use std::io::{ stdout, Write };
 
 use crate::Position;
@@ -62,5 +69,13 @@ impl Terminal {
 
     pub fn clear_current_line() {
         stdout().execute(terminal::Clear(terminal::ClearType::CurrentLine)).ok();
+    }
+
+    pub fn set_colors(colors: crossterm::style::Colors) {
+        stdout().execute(SetColors(colors)).ok();
+    }
+
+    pub fn reset_colors() {
+        stdout().execute(ResetColor).ok();
     }
 }
