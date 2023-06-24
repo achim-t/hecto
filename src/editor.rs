@@ -83,14 +83,17 @@ impl Editor {
                         self.document.delete(&self.cursor_position);
                     }
                 }
-                | (_, KeyCode::Up)
-                | (_, KeyCode::Down)
-                | (_, KeyCode::Left)
-                | (_, KeyCode::Right)
-                | (_, KeyCode::PageUp)
-                | (_, KeyCode::PageDown)
-                | (_, KeyCode::End)
-                | (_, KeyCode::Home) => self.move_cursor(pressed_key.code),
+                (
+                    _,
+                    | KeyCode::Up
+                    | KeyCode::Down
+                    | KeyCode::Left
+                    | KeyCode::Right
+                    | KeyCode::PageUp
+                    | KeyCode::PageDown
+                    | KeyCode::End
+                    | KeyCode::Home,
+                ) => self.move_cursor(pressed_key.code),
                 _ => (),
             }
         }
