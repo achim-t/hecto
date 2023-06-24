@@ -1,11 +1,12 @@
 use std::env;
+use std::ops::ControlFlow;
 use std::time::Duration;
 use std::time::Instant;
 
 use crate::Document;
 use crate::Row;
 use crate::Terminal;
-use crossterm::{ style::{ Color, Colors }, event::{ Event, KeyCode, KeyModifiers } };
+use crossterm::{ style::{ Color, Colors }, event::{ Event, KeyCode, KeyModifiers, read } };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const STATUS_FG_COLOR: Color = Color::Rgb { r: 63, g: 63, b: 63 };
@@ -62,15 +63,7 @@ impl Editor {
                 (KeyModifiers::CONTROL, KeyCode::Char('q')) => {
                     self.should_quit = true;
                 }
-                (KeyModifiers::CONTROL, KeyCode::Char('s')) => {
-                    if self.document.save().is_ok() {
-                        self.status_message = StatusMessage::from(
-                            "File saved successfully.".to_string()
-                        );
-                    } else {
-                        self.status_message = StatusMessage::from("Error writing file".to_string());
-                    }
-                }
+                (KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
                 (_, KeyCode::Enter) => {
                     self.document.insert(&self.cursor_position, '\n');
                     self.move_cursor(KeyCode::Down);
@@ -100,6 +93,22 @@ impl Editor {
         }
         self.scroll();
         Ok(())
+    }
+
+    fn save(&mut self) {
+        if self.document.file_name.is_none() {
+            let new_name = self.prompt("Save as: ").unwrap_or(None);
+            if new_name.is_none() {
+                self.status_message = StatusMessage::from("Save aborted".to_string());
+                return;
+            }
+            self.document.file_name = new_name;
+        }
+        if self.document.save().is_ok() {
+            self.status_message = StatusMessage::from("File saved successfully.".to_string());
+        } else {
+            self.status_message = StatusMessage::from("Error writing file".to_string());
+        }
     }
 
     fn scroll(&mut self) {
@@ -289,6 +298,42 @@ impl Editor {
             text.truncate(self.terminal.size().width as usize);
             print!("{}", text);
         }
+    }
+    fn prompt(&mut self, prompt: &str) -> Result<Option<String>, std::io::Error> {
+        let mut result = String::new();
+        loop {
+            self.status_message = StatusMessage::from(format!("{}{}", prompt, result));
+            self.refresh_screen()?;
+            let event = read().unwrap();
+
+            if let Event::Key(key) = event {
+                match key.code {
+                    KeyCode::Backspace => {
+                        if !result.is_empty() {
+                            result.truncate(result.len() - 1);
+                        }
+                    }
+                    KeyCode::Enter => {
+                        break;
+                    }
+                    KeyCode::Esc => {
+                        result.truncate(0);
+                        break;
+                    }
+                    KeyCode::Char(c) => {
+                        if !c.is_control() {
+                            result.push(c);
+                        }
+                    }
+                    _ => (),
+                }
+            }
+        }
+        self.status_message = StatusMessage::from(String::new());
+        if result.is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(result))
     }
 }
 
