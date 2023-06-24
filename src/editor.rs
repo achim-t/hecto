@@ -62,7 +62,10 @@ impl Editor {
                 (KeyModifiers::CONTROL, KeyCode::Char('q')) => {
                     self.should_quit = true;
                 }
-
+                (_, KeyCode::Char(c)) => {
+                    self.document.insert(&self.cursor_position, c);
+                    self.move_cursor(KeyCode::Right);
+                }
                 | (_, KeyCode::Up)
                 | (_, KeyCode::Down)
                 | (_, KeyCode::Left)
