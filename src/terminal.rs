@@ -1,12 +1,12 @@
 use crossterm::{
     cursor,
-    event::{ read, Event },
     terminal,
     ExecutableCommand,
     QueueableCommand,
     style::{ ResetColor, SetColors },
 };
 use std::io::{ stdout, Write };
+use std::convert::TryFrom;
 
 use crate::Position;
 
@@ -40,23 +40,14 @@ impl Terminal {
     }
 
     pub fn cursor_position(position: &Position) {
-        let Position { x, y } = position;
-        let x = x.saturating_add(1) as u16;
-        let y = y.saturating_add(1) as u16;
-        stdout()
-            .queue(cursor::MoveTo(x - 1, y - 1))
-            .ok();
+        let Position { x, y } = *position;
+        let x = x as u16;
+        let y = y as u16;
+        stdout().queue(cursor::MoveTo(x, y)).ok();
     }
 
     pub fn flush() -> Result<(), std::io::Error> {
         stdout().flush()
-    }
-
-    pub fn read_key() -> Result<Event, std::io::Error> {
-        loop {
-            let event = read();
-            return event;
-        }
     }
 
     pub fn cursor_hide() {

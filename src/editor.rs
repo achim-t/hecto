@@ -58,7 +58,7 @@ impl Editor {
     }
 
     fn process_keypress(&mut self) -> Result<(), std::io::Error> {
-        let event = Terminal::read_key()?;
+        let event = read()?;
         if let Event::Key(pressed_key) = event {
             match (pressed_key.modifiers, pressed_key.code) {
                 (KeyModifiers::CONTROL, KeyCode::Char('q')) => {
