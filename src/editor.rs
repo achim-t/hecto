@@ -5,6 +5,7 @@ use std::time::Instant;
 use crate::Document;
 use crate::Row;
 use crate::Terminal;
+use crossterm::event::KeyEvent;
 use crossterm::{ style::{ Color, Colors }, event::{ Event, KeyCode, KeyModifiers, read } };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -12,7 +13,7 @@ const STATUS_FG_COLOR: Color = Color::Rgb { r: 63, g: 63, b: 63 };
 const STATUS_BG_COLOR: Color = Color::Rgb { r: 239, g: 239, b: 239 };
 const QUIT_TIMES: u8 = 3;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Position {
     pub x: usize,
     pub y: usize,
@@ -67,7 +68,7 @@ impl Editor {
                     }
                 }
                 (KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
-                (KeyModifiers::CONTROL, KeyCode::Char('f')) => self.find(),
+                (KeyModifiers::CONTROL, KeyCode::Char('f')) => self.search(),
                 (_, KeyCode::Enter) => {
                     self.document.insert(&self.cursor_position, '\n');
                     self.move_cursor(KeyCode::Down);
@@ -123,7 +124,7 @@ impl Editor {
 
     fn save(&mut self) {
         if self.document.file_name.is_none() {
-            let new_name = self.prompt("Save as: ").unwrap_or(None);
+            let new_name = self.prompt("Save as: ", |_, _, _| {}).unwrap_or(None);
             if new_name.is_none() {
                 self.status_message = StatusMessage::from("Save aborted".to_string());
                 return;
@@ -329,7 +330,9 @@ impl Editor {
             print!("{}", text);
         }
     }
-    fn prompt(&mut self, prompt: &str) -> Result<Option<String>, std::io::Error> {
+    fn prompt<C>(&mut self, prompt: &str, callback: C) -> Result<Option<String>, std::io::Error>
+        where C: Fn(&mut Self, KeyEvent, &String)
+    {
         let mut result = String::new();
         loop {
             self.status_message = StatusMessage::from(format!("{}{}", prompt, result));
@@ -357,6 +360,7 @@ impl Editor {
                     }
                     _ => (),
                 }
+                callback(self, key, &result);
             }
         }
         self.status_message = StatusMessage::from(String::new());
@@ -366,13 +370,26 @@ impl Editor {
         Ok(Some(result))
     }
 
-    fn find(&mut self) {
-        if let Some(query) = self.prompt("Search: ").unwrap_or(None) {
+    fn search(&mut self) {
+        let old_position = self.cursor_position.clone();
+        if
+            let Some(query) = self
+                .prompt("Search: ", |editor, _, query| {
+                    if let Some(position) = editor.document.find(&query) {
+                        editor.cursor_position = position;
+                        editor.scroll();
+                    }
+                })
+                .unwrap_or(None)
+        {
             if let Some(position) = self.document.find(&query[..]) {
                 self.cursor_position = position;
             } else {
                 self.status_message = StatusMessage::from(format!("Not found :{}", query));
             }
+        } else {
+            self.cursor_position = old_position;
+            self.scroll();
         }
     }
 }
