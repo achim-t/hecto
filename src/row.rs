@@ -1,5 +1,6 @@
 use crate::SearchDirection;
 use std::cmp;
+use crossterm::style::{ SetForegroundColor, Color };
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Default)]
@@ -24,10 +25,22 @@ impl Row {
             .skip(start)
             .take(end - start);
         for grapheme in graphemes {
-            if grapheme == "\t" {
-                result.push_str(" ");
-            } else {
-                result.push_str(grapheme);
+            if let Some(c) = grapheme.chars().next() {
+                if c.is_ascii_digit() {
+                    result.push_str(
+                        format!(
+                            "{}",
+                            SetForegroundColor(Color::Rgb { r: 220, g: 163, b: 163 })
+                        ).as_str()
+                    );
+                } else {
+                    result.push_str(format!("{}", SetForegroundColor(Color::Reset)).as_str());
+                }
+                if c == '\t' {
+                    result.push_str(" ");
+                } else {
+                    result.push(c);
+                }
             }
         }
         result
