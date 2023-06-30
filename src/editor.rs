@@ -405,14 +405,16 @@ impl Editor {
                     editor.cursor_position = position;
                     editor.scroll();
                 } else if moved {
-                    editor.move_cursor(KeyCode::Left)
+                    editor.move_cursor(KeyCode::Left);
                 }
+                editor.document.highlight(Some(query));
             })
             .unwrap_or(None);
         if query.is_none() {
             self.cursor_position = old_position;
             self.scroll();
         }
+        self.document.highlight(None);
     }
 }
 
