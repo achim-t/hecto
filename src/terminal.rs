@@ -6,7 +6,6 @@ use crossterm::{
     style::{ ResetColor, SetColors },
 };
 use std::io::{ stdout, Write };
-use std::convert::TryFrom;
 
 use crate::Position;
 
