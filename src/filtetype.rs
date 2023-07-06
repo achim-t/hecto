@@ -8,6 +8,7 @@ pub struct HighlightingOptions {
     numbers: bool,
     strings: bool,
     characters: bool,
+    comments: bool,
 }
 
 impl Default for FileType {
@@ -32,7 +33,12 @@ impl FileType {
         if file_name.ends_with(".rs") {
             return Self {
                 name: String::from("Rust"),
-                hl_opts: HighlightingOptions { numbers: true, strings: true, characters: true },
+                hl_opts: HighlightingOptions {
+                    numbers: true,
+                    strings: true,
+                    characters: true,
+                    comments: true,
+                },
             };
         }
         Self::default()
@@ -50,5 +56,9 @@ impl HighlightingOptions {
 
     pub fn characters(self) -> bool {
         self.characters
+    }
+
+    pub fn comments(self) -> bool {
+        self.comments
     }
 }

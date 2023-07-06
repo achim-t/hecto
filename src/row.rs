@@ -1,8 +1,8 @@
 use crate::{ SearchDirection, highlighting, HighlightingOptions };
 use std::cmp;
 use crossterm::style::{ SetForegroundColor, Color };
-use unicode_segmentation::UnicodeSegmentation;
-
+use unicode_segmentation::UnicodeSegmentation; // comment
+// Test
 #[derive(Default)]
 pub struct Row {
     string: String,
@@ -236,6 +236,16 @@ impl Row {
                         continue;
                     }
                 }
+            }
+            if opts.comments() && *c == '/' {
+                if let Some(next_char) = chars.get(index.saturating_add(1)) {
+                    if *next_char == '/' {
+                        for _ in index..chars.len() {
+                            highlighting.push(highlighting::Type::Comment);
+                        }
+                        break;
+                    }
+                };
             }
             if opts.numbers() {
                 if
